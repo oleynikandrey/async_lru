@@ -176,7 +176,7 @@ async def test_alru_cache_dict_not_shared(check_lru, loop):
 
     assert ret1 == ret2
 
-    assert coro1._cache[1].result() == coro2._cache[1].result()
+    assert coro1._cache[1][0].result() == coro2._cache[1][0].result()
     assert coro1._cache != coro2._cache
     assert coro1._cache.keys() == coro2._cache.keys()
     assert coro1._cache is not coro2._cache

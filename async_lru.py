@@ -173,7 +173,8 @@ def alru_cache(
     cls=False,
     kwargs=False,
     cache_exceptions=True,
-    loop=None
+    loop=None,
+    expires_in=None
 ):
     def wrapper(fn):
         _origin = unpartial(fn)
@@ -204,7 +205,12 @@ def alru_cache(
 
             key = _make_key(fn_args, fn_kwargs, typed)
 
-            fut = wrapped._cache.get(key)
+            fut, expires_at = wrapped._cache.get(key, (None, None))
+
+            # invalidate expired record
+            if expires_at and expires_at < _loop.time():
+                wrapped._cache.pop(key)
+                fut = None
 
             if fut is not None:
                 if not fut.done():
@@ -228,7 +234,8 @@ def alru_cache(
             wrapped.tasks.add(task)
             task.add_done_callback(wrapped.tasks.remove)
 
-            wrapped._cache[key] = task
+            expires_at = _loop.time() + expires_in if expires_in else None
+            wrapped._cache[key] = task, expires_at
 
             if maxsize is not None and len(wrapped._cache) > maxsize:
                 wrapped._cache.popitem(last=False)
