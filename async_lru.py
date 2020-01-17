@@ -7,7 +7,7 @@ try:
 except ImportError:  # pragma: no cover
     ensure_future = getattr(asyncio, 'async')
 
-__version__ = '1.0.1'
+__version__ = '1.0.2'
 
 __all__ = ('alru_cache',)
 
@@ -235,7 +235,7 @@ def alru_cache(
             task.add_done_callback(wrapped.tasks.remove)
 
             expires_at = _loop.time() + expires_in if expires_in else None
-            wrapped._cache[key] = task, expires_at
+            wrapped._cache[key] = fut, expires_at
 
             if maxsize is not None and len(wrapped._cache) > maxsize:
                 wrapped._cache.popitem(last=False)
